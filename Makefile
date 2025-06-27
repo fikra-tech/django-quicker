@@ -19,7 +19,7 @@ DOCKER_COMPOSE_DEV_PATH			:= docker-compose.dev.yaml
 # Commands
 .PHONY: sync
 sync:
-	uv sync
+	uv sync --dev
 
 .PHONY: install-pre-commit
 install-pre-commit:
@@ -33,6 +33,7 @@ lint:
 .PHONY: run/server
 run/server:
 	$(DJANGO_RUN) runserver
+
 
 .PHONY: migrate
 migrate:
@@ -74,6 +75,7 @@ up-dependencies-only:
 collectstatic:
 	$(DJANGO_RUN) collectstatic
 
+.PHONY: shell
 shell:
 	$(DJANGO_RUN) shell
 
@@ -86,13 +88,13 @@ image/build:
 	@API_VERSION=$$($(DJANGO_RUN) shell -c "from django.conf import settings; print(settings.API_VERSION)") && \
 	docker build -t hotmix:$$API_VERSION -t hotmix:latest .
 
-.PHONY: docker/build
-docker/build:
-	$(DOCKER_COMPOSE) build
+.PHONY: docker/dev/build
+docker/dev/build:
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yaml build
 
 .PHONY: docker/dev/up
 docker/dev/up:
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yaml up -d
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yaml up 
 
 .PHONY: build-up
 build-up:build up;
@@ -118,6 +120,18 @@ docs/build:
 docs/serve:
 	cd $(DOCS_PATH) && mdbook serve --open
 
+.PHONY:migrations/clean
+migrations/clean:
+	find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+	find . -path "*/migrations/*.pyc" -delete
+	rm -rf db.sqlite3
+
+.PHONY: zero
+zero: migrations/clean migrations migrate superuser
+
+.PHONY: deploy
+deploy:
+	$(DOCKER_COMPOSE) --env-file .env.prod up --build -d
 
 # Provide quick help for common Makefile targets.
 .PHONY: help
@@ -133,6 +147,7 @@ help:
 	@echo "  run/server				Run the django server"
 	@echo "  migrate				Apply migrations"
 	@echo "  migrations				Create migrations"
+	@echo "  migrattions/clean			Delete all migrations files"
 	@echo "  superuser				Create superuser"
 	@echo "  app <name>				Create a new app"
 	@echo "  shell					Run the django shell"
@@ -141,6 +156,7 @@ help:
 	@echo "  update				Install dependencies, apply migrations and install pre-commit hooks"
 	@echo "  up-dependencies-only			Up only the dependencies"
 	@echo "  collectstatic				Collect static files"
+	@echo "  zero					Delete all migrations files, apply migrations and create superuser"
 	@echo ""
 	@echo "  docker/build				Build the docker images"
 	@echo "  docker/up				Up the docker containers"
