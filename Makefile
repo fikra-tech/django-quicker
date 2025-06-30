@@ -3,7 +3,7 @@
 .DEFAULT_GOAL				:= run/server
 
 # Variables commands
-UV_RUN				:= uv run
+UV_RUN					:= uv run
 DJANGO_RUN				:= $(UV_RUN) -m core.manage
 PRE_COMMIT_CMD				:= $(UV_RUN) pre-commit
 DOCKER_COMPOSE				:= docker compose
