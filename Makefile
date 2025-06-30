@@ -122,8 +122,8 @@ docs/serve:
 
 .PHONY:migrations/clean
 migrations/clean:
-	find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-	find . -path "*/migrations/*.pyc" -delete
+	find . -path "core/*/migrations/*.py" -not -name "__init__.py" -delete
+	find . -path "core/*/migrations/*.pyc" -delete
 	rm -rf db.sqlite3
 
 .PHONY: zero
