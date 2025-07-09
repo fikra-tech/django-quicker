@@ -106,6 +106,7 @@ docker/down:
 .PHONY: install/cargo
 install/cargo:
 	curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+	. "$$HOME/.cargo/env" && cargo --version
 
 .PHONY: install/mdbook
 install/mdbook:
